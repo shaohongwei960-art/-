@@ -8,6 +8,7 @@
 输出：build/bad-guy-cn.mid
 """
 
+import argparse
 import pathlib
 import sys
 
@@ -18,6 +19,13 @@ from miditools import Song, chord, pitch  # noqa: E402
 OUT_DIR = pathlib.Path(__file__).resolve().parents[2] / "build"
 BPM = 98
 BAR = 4.0  # 4/4
+
+# 主旋律写在 Am 上（记谱音域 G4–A5）。实唱调门由 --key 决定：
+#   男声默认 Gm —— 主歌 F3–D4，副歌顶到 G4，末段升 Am 顶到 A4，
+#   这是绝大多数男声「够得着、但要用力」的位置，正好配这首歌的劲儿。
+KEY_SHIFT = {"E": -5, "F": -4, "F#": -3, "G": -2, "G#": -1, "A": 0, "Bb": 1, "B": 2}
+DEFAULT_KEY = "G"      # 男声版
+VOCAL_OCTAVE = -12     # 人声轨相对记谱下移一个八度（男声）
 
 # ---------------------------------------------------------------- 和声
 INTRO = ["Am", "Am", "F", "G"] * 2
@@ -137,8 +145,9 @@ SNARE = [4, 12]
 HAT = [0, 2, 4, 6, 8, 10, 12, 14]
 
 
-def build() -> Song:
-    song = Song("坏蛋 · 中文版 (demo)", bpm=BPM, time_signature=(4, 4))
+def build(key: str = DEFAULT_KEY, vocal_octave: int = VOCAL_OCTAVE) -> Song:
+    key_shift = KEY_SHIFT[key]
+    song = Song(f"坏蛋 · 中文版 demo ({key}m)", bpm=BPM, time_signature=(4, 4))
 
     lead = song.track("Lead Vocal (guide)", channel=0, program=54)   # 人声代用音色
     khaen = song.track("Khaen / 笙", channel=1, program=22)           # 口琴代用
@@ -154,7 +163,7 @@ def build() -> Song:
 
         for i, sym in enumerate(progression):
             beat = cursor + i * BAR
-            notes = [n + shift for n in chord(sym, octave=3)]
+            notes = [n + shift + key_shift for n in chord(sym, octave=3)]
             root = notes[0] - 12
 
             # 钢琴：Bridge 用分解，其余用柱式
@@ -202,29 +211,56 @@ def build() -> Song:
 
         # 主旋律
         mel = MELODY.get(name, [])
-        target = khaen if name in HOOK_SECTIONS else lead
+        is_hook = name in HOOK_SECTIONS
+        target = khaen if is_hook else lead
+        # 人声下移一个八度唱（男声）；笙保持记谱音区
+        octave = 0 if is_hook else vocal_octave
         vel = 84 if density < 3 else 96
         for start, note_name, dur in mel:
-            target.note(cursor + start, pitch(note_name) + shift, dur, velocity=vel)
+            target.note(cursor + start, pitch(note_name) + shift + key_shift + octave,
+                        dur, velocity=vel)
 
         # 副歌里笙在人声句尾填空（一问一答）
         if name.startswith(("Chorus", "Final")):
             for bar_idx in (1, 3, 5, 7):
                 b = cursor + bar_idx * BAR + 3.0
                 for j, p in enumerate(["E5", "D5", "C5"]):
-                    khaen.note(b + j * 0.25, pitch(p) + shift + 12, 0.25, velocity=62)
+                    khaen.note(b + j * 0.25, pitch(p) + shift + key_shift + 12,
+                               0.25, velocity=62)
 
         cursor += len(progression) * BAR
 
     return song
 
 
+def vocal_range(key: str, vocal_octave: int) -> str:
+    names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    fmt = lambda p: f"{names[p % 12]}{p // 12 - 1}"  # noqa: E731
+    pitches = []
+    for name, _prog, shift, _d in SECTIONS:
+        for _s, note_name, _dur in MELODY.get(name, []):
+            if name not in HOOK_SECTIONS:
+                pitches.append(pitch(note_name) + shift + KEY_SHIFT[key] + vocal_octave)
+    return f"{fmt(min(pitches))} – {fmt(max(pitches))}"
+
+
 def main() -> None:
+    ap = argparse.ArgumentParser(description="生成《坏蛋》中文版 demo MIDI")
+    ap.add_argument("--key", default=DEFAULT_KEY, choices=sorted(KEY_SHIFT),
+                    help=f"主调（小调主音），默认 {DEFAULT_KEY}m（男声）")
+    ap.add_argument("--vocal-octave", type=int, default=VOCAL_OCTAVE,
+                    help="人声轨移调半音数，男声 -12，女声/原记谱 0")
+    ap.add_argument("-o", "--out", help="输出文件名")
+    args = ap.parse_args()
+
     OUT_DIR.mkdir(exist_ok=True)
-    song = build()
-    path = song.save(str(OUT_DIR / "bad-guy-cn.mid"))
+    song = build(args.key, args.vocal_octave)
+    out = args.out or f"bad-guy-cn-{args.key.lower().replace('#', 's')}m.mid"
+    path = song.save(str(OUT_DIR / out))
     bars = sum(len(s[1]) for s in SECTIONS)
     print(f"已生成 {path}")
+    print(f"调性 {args.key}m，末段 +2")
+    print(f"人声音域 {vocal_range(args.key, args.vocal_octave)}")
     print(f"共 {bars} 小节 / {BPM} BPM ≈ {bars * 4 * 60 / BPM:.0f} 秒")
 
 
