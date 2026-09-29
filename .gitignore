@@ -22,3 +22,6 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+
+# 合成的念白人声片段（体积大，可由脚本重新生成）
+build/vox/
