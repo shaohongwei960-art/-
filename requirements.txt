@@ -2,7 +2,9 @@
 # 安装：pip install -r requirements.txt（沙箱里可加 --break-system-packages）
 
 numpy>=1.24          # tools/miditools/render.py 渲染音频必需
-imageio-ffmpeg>=0.4  # 自带 ffmpeg 二进制，用于 wav -> mp3（apt 装不上 ffmpeg 时的救命稻草）
+imageio-ffmpeg>=0.4  # 自带 ffmpeg 二进制，用于 wav -> mp3
+                     # 注：本沙箱有出网域名白名单，pypi/github/npm 放行，Debian 源不在其中，
+                     #     所以 apt 装不了 ffmpeg —— 用这个 PyPI 包带的二进制绕过
 
 # 下面是想要更强乐理/记谱能力时才需要的：
 mido>=1.3            # 读/写 MIDI，解析已有曲子
