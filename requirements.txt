@@ -1,0 +1,6 @@
+# 核心工具（tools/miditools）零依赖，以下都是「想要更强能力时」才装的可选项。
+# 安装：python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+
+mido>=1.3            # 读/写 MIDI，解析已有曲子
+music21>=9.1         # 乐理分析、和声标注、导出 MusicXML
+pretty_midi>=0.2.10  # MIDI 与钢琴卷帘/音符表互转
