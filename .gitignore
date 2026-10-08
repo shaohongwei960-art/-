@@ -5,3 +5,7 @@ test-results/
 *.log
 
 image-search/
+
+.env
+.env.*
+!.env.example
