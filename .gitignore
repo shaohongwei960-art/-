@@ -9,3 +9,4 @@ image-search/
 .env
 .env.*
 !.env.example
+!.env.mainland.example

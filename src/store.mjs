@@ -1,5 +1,7 @@
+import {assetUrl} from './assets.mjs';
+
 export const categories = ['全部好物','数码电子','图书文娱','家居生活','运动户外','服饰配件','其他好物'];
-const item = (id,title,image,category,wish,owner,name,condition,distance,extra={}) => ({id,title,image:`/images/${image}.jpg`,category,wish,owner,name,condition,distance,city:'成都',area:'武侯区',description:'买来一直很爱惜，平时放在家里使用。现在想为生活腾一点空间，希望它能遇到下一位喜欢它的人。',flaws:'有正常使用痕迹，具体细节可在交接时检查。',status:'available',created:100-id,...extra});
+const item = (id,title,image,category,wish,owner,name,condition,distance,extra={}) => ({id,title,image:assetUrl(`images/${image}.jpg`),category,wish,owner,name,condition,distance,city:'成都',area:'武侯区',description:'买来一直很爱惜，平时放在家里使用。现在想为生活腾一点空间，希望它能遇到下一位喜欢它的人。',flaws:'有正常使用痕迹，具体细节可在交接时检查。',status:'available',created:100-id,...extra});
 export function initialState(){return {items:[
 item(1,'富士 X100 · 把日常拍成电影','camera','数码电子','拍立得 / 降噪耳机','u1','山间有风','使用良好',1.2,{description:'银黑配色的富士 X100，日常扫街很喜欢的色调。含电池、充电器和肩带，最近拍得少，想换一副耳机。',flaws:'机身底部有轻微划痕；功能说明为演示内容，非真实商品。'}),
 item(2,'Marshall Emberton 便携音箱','speaker','数码电子','咖啡器具 / 露营装备','u2','小岛同学','近新',2.4),
@@ -12,11 +14,16 @@ item(8,'Brompton 绿色折叠自行车','bike','运动户外','露营装备 / �
 item(101,'我的摩卡壶 · 闲置咖啡器具','coffee','家居生活','蓝牙音箱 / 书籍','me','你','使用良好',0),
 item(102,'我的 KINFOLK 生活方式书籍','books','图书文娱','露营装备 / 图书','me','你','近新',0),
 item(103,'我的手绘陶土花盆','plant','家居生活','家居生活 / 数码电子','me','你','近新',0)
-],favorites:[],offers:[{id:'demo-incoming',from:2,to:101,direction:'incoming',status:'pending',note:'你好！想用音箱换你的摩卡壶，周末可以当面交换吗？',mineConfirmed:false,theirsConfirmed:false,created:Date.now()}],messages:[{id:'welcome',peer:'u2',name:'小岛同学',itemId:2,mine:false,text:'你好！我想用音箱换你的摩卡壶，已经发送交换申请啦。',time:'10:24'}],blocked:[],reports:[],reviews:[]};}
-export function itemStatus(state,id){ const item=state.items.find(x=>x.id===id); if(!item)return 'missing'; if(item.status==='hidden')return 'hidden'; if(state.offers.some(o=>(o.from===id||o.to===id)&&o.status==='completed'))return 'exchanged'; if(state.offers.some(o=>(o.from===id||o.to===id)&&['accepted','partial','disputed'].includes(o.status)))return 'locked'; return 'available'; }
+],profile:{displayName:'生活收藏家',countryCode:'CN',city:'成都',locale:'zh-CN'},conversations:[],favorites:[],offers:[{id:'demo-incoming',from:2,to:101,direction:'incoming',status:'pending',note:'你好！想用音箱换你的摩卡壶，周末可以当面交换吗？',mineConfirmed:false,theirsConfirmed:false,created:Date.now()}],messages:[{id:'welcome',peer:'u2',name:'小岛同学',itemId:2,mine:false,text:'你好！我想用音箱换你的摩卡壶，已经发送交换申请啦。',time:'10:24'}],blocked:[],reports:[],reviews:[]};}
+export function itemStatus(state,id){ const item=state.items.find(x=>x.id===id); if(!item)return 'missing'; if(item.status==='hidden')return 'hidden'; if(item.status==='pending_review')return 'pending_review'; if(item.status==='rejected')return 'rejected'; if(item.status==='reserved'||item.status==='locked')return 'locked'; if(item.status==='exchanged')return 'exchanged'; if(state.offers.some(o=>(o.from===id||o.to===id)&&o.status==='completed'))return 'exchanged'; if(state.offers.some(o=>(o.from===id||o.to===id)&&['accepted','partial','disputed'].includes(o.status)))return 'locked'; return 'available'; }
 export function updateState(state,a){
  if(a.type==='favorite')return {...state,favorites:state.favorites.includes(a.id)?state.favorites.filter(x=>x!==a.id):[...state.favorites,a.id]};
  if(a.type==='publish')return {...state,items:[a.item,...state.items]};
+ if(a.type==='edit'){
+  if(!state.items.some(item=>item.id===a.item.id)||['locked','exchanged','pending_review'].includes(itemStatus(state,a.item.id)))return state;
+  return {...state,items:state.items.map(item=>item.id===a.item.id?{...a.item}:item)};
+ }
+ if(a.type==='profile')return {...state,profile:{...(state.profile||{}),...a.profile}};
  if(a.type==='visibility'){
   if(['locked','exchanged'].includes(itemStatus(state,a.id)))return state;
   return {...state,items:state.items.map(i=>i.id===a.id?{...i,status:i.status==='hidden'?'available':'hidden'}:i),offers:state.offers.map(o=>o.status==='pending'&&(o.to===a.id||o.from===a.id)?{...o,status:'cancelled'}:o)};

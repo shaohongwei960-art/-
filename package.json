@@ -5,19 +5,32 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "dev:mainland": "vite --mode mainland --host 0.0.0.0",
     "build": "vite build",
+    "build:mainland": "vite build --mode mainland",
     "preview": "vite preview --host 0.0.0.0",
+    "preview:mainland": "vite preview --mode mainland --host 0.0.0.0",
+    "build:pages": "node scripts/build-pages.mjs",
     "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
     "package:app": "npm run build && node scripts/package-app.mjs"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/helmet": "^13.1.1",
+    "@fastify/rate-limit": "^11.2.0",
     "@fontsource-variable/noto-sans-sc": "^5.3.0",
     "@supabase/supabase-js": "^2.117.3",
+    "fastify": "^5.12.5",
+    "jose": "^6.2.12",
+    "libphonenumber-js": "^1.13.14",
     "lucide-react": "^0.468.0",
+    "pg": "^8.23.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@playwright/test": "^1.51.0",
     "@sparticuz/chromium": "^153.0.0",
     "@vitejs/plugin-react": "^4.3.4",
