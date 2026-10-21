@@ -1,6 +1,6 @@
 # 注册／登录更新
 
-已加入 Supabase Auth 手机短信与邮箱注册、登录、邮箱验证、密码重置和退出。请先阅读 [认证配置](docs/注册认证配置.md)，配置 `.env.local` 并启用短信／邮件服务。没有配置时显示注册入口，但不会发送验证码或创建账户。业务数据仍仅本机保存，不是完整多用户平台。
+已加入 Supabase Auth 手机短信与邮箱注册、登录、邮箱验证、密码重置和退出。请先阅读 [认证配置](docs/注册认证配置.md)，配置 `.env.local` 并启用短信与邮件服务后再使用真实账号功能。
 
 `releases/huanhuan-app-v0.2-web.zip` 是历史未含注册入口的发布包；本次源码更新后请配置认证环境变量，运行 `npm run package:app` 重新生成，勿直接分发旧包。
 
@@ -8,8 +8,29 @@
 
 ## 可安装 APP（v0.2）
 
-已加入 PWA 应用清单、桌面图标、独立窗口、离线缓存和安装入口。使用 `npm run package:app` 生成静态发布 ZIP，使用 `npm run preview` 在 4173 端口体验安装版。具体步骤见 [APP 安装说明](docs/APP安装说明.md)。这是可安装网页应用，不是 APK；手机安装和断网运行尚待实机验证。
+已加入 PWA 应用清单、桌面图标、独立窗口、离线缓存和安装入口。使用 `npm run package:app` 生成静态发布 ZIP，使用 `npm run preview` 在 4173 端口体验安装版，或将 `dist/` 部署到 Vercel / Cloudflare Pages 等静态托管服务。
 
+## 本地开发 / 发布
+
+```sh
+npm install
+npm run dev
+npm run build
+npm test
+npm run package:app
+```
+
+## PWA 部署说明
+
+如果要将它发布为“像 App 一样”的安装型网页应用，请按下面步骤执行：
+
+1. 构建项目：`npm run build`
+2. 生成安装包：`npm run package:app`
+3. 将 `dist/` 目录部署到静态托管平台；推荐：Vercel / Cloudflare Pages
+4. 访问部署后的地址，浏览器会提示“安装应用”或“Add to Home Screen”
+5. 在手机或桌面端启用独立窗口模式，可获得更接近原生 App 的体验
+
+注意：PWA 安装提示要求站点为 HTTPS 或 localhost，生产环境请使用受信任的 SSL 域名。
 
 React + Vite 的响应式中文交互原型。首页、分类搜索、收藏、物品详情、图片发布、消息、交换申请、双向交接确认与评价均可体验。
 
@@ -33,7 +54,7 @@ npm test
 ## 测试
 
 `npm test` 验证状态机锁定、冲突接受、取消、双向完成、评价去重和重复申请。
-`node tests/browser.mjs` 是浏览器烟雾测试，要求开发服务器运行，并安装 Chromium 所需系统共享库。当前环境因缺少 `libnspr4.so` 无法执行浏览器测试；构建与状态机测试已通过。
+`node tests/browser.mjs` 是浏览器烟雾测试，要求开发服务器运行，并安装 Chromium 所需系统共享库。当前环境因缺少 `libnspr4.so` 无法执行浏览器测试；构建和单元测试仍可验证核心规则。
 
 ## 设计文档
 
@@ -41,4 +62,4 @@ npm test
 
 ## 图片
 
-首页主视觉、帐篷和摩卡壶为 AI 生成的演示图片。其他产品图为搜索取得的参考图片，只用于非商业设计演示，发布前需替换为有授权的实拍图。来源记录见 `docs/图片来源.md`。
+首页主视觉、帐篷和摩卡壶为 AI 生成的演示图片。其他产品图为搜索取得的参考图片，只用于非商业设计演示，发布前需替换为有授权的实拍图。来[...]
